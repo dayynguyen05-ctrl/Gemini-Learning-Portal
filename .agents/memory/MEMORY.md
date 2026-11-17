@@ -1,0 +1,1 @@
+- [Gemini model availability](gemini-model-availability.md) — Select models from the user's live Google API list; SDK support does not guarantee the key can call them.

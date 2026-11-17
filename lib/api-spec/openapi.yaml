@@ -1,22 +1,35 @@
 openapi: 3.1.0
 info:
-  # Do not change the title, if the title changes, the import paths will be broken
   title: Api
   version: 0.1.0
-  description: API specification
+  description: Diem Tua Hoc Duong API
 servers:
   - url: /api
     description: Base API path
 tags:
   - name: health
     description: Health operations
+  - name: chat
+    description: Chat support operations
+  - name: resources
+    description: Resource articles
+  - name: mood
+    description: Mood tracking
+  - name: hotlines
+    description: Emergency hotlines
+  - name: faq
+    description: FAQ management
+  - name: community
+    description: Shared community posts and comments
+  - name: gemini
+    description: Gemini AI chat operations
+
 paths:
   /healthz:
     get:
       operationId: healthCheck
       tags: [health]
       summary: Health check
-      description: Returns server health status
       responses:
         "200":
           description: Healthy
@@ -24,13 +37,774 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/HealthStatus"
+
+  /chat/message:
+    post:
+      operationId: sendChatMessage
+      tags: [chat]
+      summary: Send a chat message and get a rule-based response
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ChatMessageInput"
+      responses:
+        "200":
+          description: Bot response
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ChatResponse"
+
+  /chat/history:
+    get:
+      operationId: getChatHistory
+      tags: [chat]
+      summary: Get recent chat messages for a session
+      parameters:
+        - name: sessionId
+          in: query
+          required: true
+          schema:
+            type: string
+        - name: limit
+          in: query
+          schema:
+            type: integer
+            default: 50
+      responses:
+        "200":
+          description: List of messages
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/ChatMessage"
+
+  /resources:
+    get:
+      operationId: listResources
+      tags: [resources]
+      summary: List support resources/articles
+      parameters:
+        - name: category
+          in: query
+          schema:
+            type: string
+        - name: limit
+          in: query
+          schema:
+            type: integer
+            default: 20
+      responses:
+        "200":
+          description: List of resources
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Resource"
+
+  /resources/{id}:
+    get:
+      operationId: getResource
+      tags: [resources]
+      summary: Get a single resource by ID
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Resource detail
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Resource"
+        "404":
+          description: Not found
+
+  /resources/featured:
+    get:
+      operationId: getFeaturedResources
+      tags: [resources]
+      summary: Get featured/pinned resources for homepage
+      responses:
+        "200":
+          description: Featured resources
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Resource"
+
+  /mood:
+    post:
+      operationId: logMood
+      tags: [mood]
+      summary: Log a mood entry
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/MoodInput"
+      responses:
+        "201":
+          description: Mood logged
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/MoodEntry"
+
+    get:
+      operationId: getMoodHistory
+      tags: [mood]
+      summary: Get mood history for a session
+      parameters:
+        - name: sessionId
+          in: query
+          required: true
+          schema:
+            type: string
+        - name: days
+          in: query
+          schema:
+            type: integer
+            default: 7
+      responses:
+        "200":
+          description: Mood history
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/MoodEntry"
+
+  /hotlines:
+    get:
+      operationId: listHotlines
+      tags: [hotlines]
+      summary: List emergency hotlines and support contacts
+      responses:
+        "200":
+          description: List of hotlines
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Hotline"
+
+  /faq:
+    get:
+      operationId: listFaq
+      tags: [faq]
+      summary: List FAQ categories with questions
+      responses:
+        "200":
+          description: FAQ list
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/FaqCategory"
+
+  /gemini/conversations:
+    get:
+      operationId: listGeminiConversations
+      tags: [gemini]
+      summary: List all conversations
+      parameters:
+        - name: sessionId
+          in: query
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: List of conversations
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/GeminiConversation"
+    post:
+      operationId: createGeminiConversation
+      tags: [gemini]
+      summary: Create a new conversation
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/GeminiConversationInput"
+      responses:
+        "201":
+          description: Created conversation
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/GeminiConversation"
+  /gemini/conversations/{id}:
+    get:
+      operationId: getGeminiConversation
+      tags: [gemini]
+      summary: Get conversation with messages
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Conversation with messages
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/GeminiConversationWithMessages"
+        "404":
+          description: Not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/GeminiError"
+    delete:
+      operationId: deleteGeminiConversation
+      tags: [gemini]
+      summary: Delete a conversation
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "204":
+          description: Deleted
+        "404":
+          description: Not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/GeminiError"
+  /gemini/conversations/{id}/messages:
+    get:
+      operationId: listGeminiMessages
+      tags: [gemini]
+      summary: List messages in a conversation
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: List of messages
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/GeminiMessage"
+    post:
+      operationId: sendGeminiMessage
+      tags: [gemini]
+      summary: Send a message and receive an AI response (SSE stream)
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/GeminiMessageInput"
+      responses:
+        "200":
+          description: SSE stream of assistant response chunks
+          content:
+            text/event-stream: {}
+
+  /stats/overview:
+    get:
+      operationId: getStatsOverview
+      tags: [health]
+      summary: Get app overview stats
+      responses:
+        "200":
+          description: Overview stats
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/StatsOverview"
+
+  /study-streak:
+    get:
+      operationId: getStudyStreak
+      tags: [study-streak]
+      summary: Get the authenticated user's study streak
+      responses:
+        "200":
+          description: Current study streak
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/StudyStreak"
+        "401":
+          description: Sign-in required
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/StudyStreakError"
+    post:
+      operationId: checkInStudyDay
+      tags: [study-streak]
+      summary: Record today's study check-in
+      responses:
+        "200":
+          description: Updated study streak
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/StudyStreak"
+        "401":
+          description: Sign-in required
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/StudyStreakError"
+
+  /community/posts:
+    get:
+      operationId: listCommunityPosts
+      tags: [community]
+      summary: List recent public community posts and comments
+      parameters:
+        - name: sessionId
+          in: query
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Recent community posts
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/CommunityPost"
+    post:
+      operationId: createCommunityPost
+      tags: [community]
+      summary: Create a public community post
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CommunityPostInput"
+      responses:
+        "201":
+          description: Created post
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/CommunityPost"
+        "400":
+          description: Invalid post
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/GeminiError"
+
+  /community/posts/{id}/comments:
+    post:
+      operationId: addCommunityComment
+      tags: [community]
+      summary: Add a comment to a community post
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CommunityCommentInput"
+      responses:
+        "201":
+          description: Added comment
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/CommunityComment"
+        "400":
+          description: Invalid comment
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/GeminiError"
+        "404":
+          description: Post not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/GeminiError"
+
 components:
   schemas:
     HealthStatus:
       type: object
+      required: [status]
       properties:
         status:
           type: string
-      required:
-        - status
 
+    ChatMessageInput:
+      type: object
+      required: [sessionId, text]
+      properties:
+        sessionId:
+          type: string
+        text:
+          type: string
+
+    ChatMessage:
+      type: object
+      required: [id, sessionId, text, sender, createdAt]
+      properties:
+        id:
+          type: integer
+        sessionId:
+          type: string
+        text:
+          type: string
+        sender:
+          type: string
+          enum: [user, bot]
+        createdAt:
+          type: string
+
+    ChatResponse:
+      type: object
+      required: [userMessage, botMessage]
+      properties:
+        userMessage:
+          $ref: "#/components/schemas/ChatMessage"
+        botMessage:
+          $ref: "#/components/schemas/ChatMessage"
+        suggestedReplies:
+          type: array
+          items:
+            type: string
+        category:
+          type: ["string", "null"]
+
+    Resource:
+      type: object
+      required: [id, title, summary, category, readMinutes, createdAt]
+      properties:
+        id:
+          type: integer
+        title:
+          type: string
+        summary:
+          type: string
+        content:
+          type: ["string", "null"]
+        category:
+          type: string
+        tags:
+          type: array
+          items:
+            type: string
+        readMinutes:
+          type: integer
+        imageUrl:
+          type: ["string", "null"]
+        featured:
+          type: boolean
+        createdAt:
+          type: string
+
+    MoodInput:
+      type: object
+      required: [sessionId, mood, score]
+      properties:
+        sessionId:
+          type: string
+        mood:
+          type: string
+          enum: [very_sad, sad, neutral, happy, very_happy]
+        score:
+          type: integer
+        note:
+          type: ["string", "null"]
+
+    MoodEntry:
+      type: object
+      required: [id, sessionId, mood, score, createdAt]
+      properties:
+        id:
+          type: integer
+        sessionId:
+          type: string
+        mood:
+          type: string
+        score:
+          type: integer
+        note:
+          type: ["string", "null"]
+        createdAt:
+          type: string
+
+    Hotline:
+      type: object
+      required: [id, name, phone, description, available24h]
+      properties:
+        id:
+          type: integer
+        name:
+          type: string
+        phone:
+          type: string
+        description:
+          type: string
+        available24h:
+          type: boolean
+        category:
+          type: string
+
+    FaqCategory:
+      type: object
+      required: [id, name, questions]
+      properties:
+        id:
+          type: integer
+        name:
+          type: string
+        questions:
+          type: array
+          items:
+            $ref: "#/components/schemas/FaqItem"
+
+    FaqItem:
+      type: object
+      required: [id, question, answer]
+      properties:
+        id:
+          type: integer
+        question:
+          type: string
+        answer:
+          type: string
+
+    StatsOverview:
+      type: object
+      required: [totalResources, totalHotlines, totalFaqItems, supportCategories]
+      properties:
+        totalResources:
+          type: integer
+        totalHotlines:
+          type: integer
+        totalFaqItems:
+          type: integer
+        supportCategories:
+          type: array
+          items:
+            type: string
+
+    GeminiConversation:
+      type: object
+      properties:
+        id:
+          type: integer
+        title:
+          type: string
+        createdAt:
+          type: string
+          format: date-time
+      required:
+        - id
+        - title
+        - createdAt
+    GeminiMessage:
+      type: object
+      properties:
+        id:
+          type: integer
+        conversationId:
+          type: integer
+        role:
+          type: string
+        content:
+          type: string
+        createdAt:
+          type: string
+          format: date-time
+      required:
+        - id
+        - conversationId
+        - role
+        - content
+        - createdAt
+    GeminiConversationInput:
+      type: object
+      properties:
+        title:
+          type: string
+        sessionId:
+          type: string
+      required:
+        - title
+        - sessionId
+    GeminiMessageInput:
+      type: object
+      properties:
+        content:
+          type: string
+        sessionId:
+          type: string
+        imageBase64:
+          type: string
+        imageMimeType:
+          type: string
+          enum: [image/jpeg, image/png, image/webp]
+      required:
+        - sessionId
+    GeminiConversationWithMessages:
+      type: object
+      properties:
+        id:
+          type: integer
+        title:
+          type: string
+        createdAt:
+          type: string
+          format: date-time
+        messages:
+          type: array
+          items:
+            $ref: "#/components/schemas/GeminiMessage"
+      required:
+        - id
+        - title
+        - createdAt
+        - messages
+    GeminiError:
+      type: object
+      properties:
+        error:
+          type: string
+      required:
+        - error
+    StudyStreak:
+      type: object
+      properties:
+        currentStreak:
+          type: integer
+          minimum: 0
+        totalStudyDays:
+          type: integer
+          minimum: 0
+        checkedInToday:
+          type: boolean
+        lastCheckInDate:
+          type: ["string", "null"]
+          format: date
+      required: [currentStreak, totalStudyDays, checkedInToday, lastCheckInDate]
+    StudyStreakError:
+      type: object
+      properties:
+        error:
+          type: string
+      required: [error]
+    CommunityPost:
+      type: object
+      properties:
+        id:
+          type: integer
+        nickname:
+          type: string
+        category:
+          type: string
+          enum: [lesson, chat]
+        content:
+          type: string
+        createdAt:
+          type: string
+          format: date-time
+        isMine:
+          type: boolean
+        comments:
+          type: array
+          items:
+            $ref: "#/components/schemas/CommunityComment"
+      required: [id, nickname, category, content, createdAt, isMine, comments]
+    CommunityComment:
+      type: object
+      properties:
+        id:
+          type: integer
+        postId:
+          type: integer
+        nickname:
+          type: string
+        content:
+          type: string
+        createdAt:
+          type: string
+          format: date-time
+        isMine:
+          type: boolean
+      required: [id, postId, nickname, content, createdAt, isMine]
+    CommunityPostInput:
+      type: object
+      properties:
+        sessionId:
+          type: string
+        nickname:
+          type: string
+          minLength: 1
+          maxLength: 24
+        category:
+          type: string
+          enum: [lesson, chat]
+        content:
+          type: string
+          minLength: 1
+          maxLength: 1000
+      required: [sessionId, nickname, category, content]
+    CommunityCommentInput:
+      type: object
+      properties:
+        sessionId:
+          type: string
+        nickname:
+          type: string
+          minLength: 1
+          maxLength: 24
+        content:
+          type: string
+          minLength: 1
+          maxLength: 500
+      required: [sessionId, nickname, content]
